@@ -1,0 +1,7 @@
+# Example light control preset file
+07:11:00 light 0.50  # Set light to 50%
+07:11:01 light 0.90  # Set light to 90%
+07:11:02 light 1.00  # Set light to 100%
+07:10:00 shade 0.12
+07:11:10 light 0.00  # Set light to 0%
+07:11:10 shade 1.00  # Set shade to 100%
