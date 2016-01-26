@@ -1,5 +1,62 @@
 import datetime
 import time
+import socket
+
+COMMAND_TRANSFER = "a"
+FILE_TRANSFER = "b"
+CHUNK_SIZE = 65536
+
+class SocketCreationException(Exception):
+    pass
+
+
+class Connection(object):
+    def __init__(self, address, sock=None, open=False):
+        self.address = address
+        self.sock = sock
+        if open:
+            self.open()
+
+    def open(self):
+        if not self.sock:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(self.address)
+            self.sock = s
+
+    def close(self):
+        if not self.sock:
+            raise SocketCreationException
+        self.sock.close()
+
+
+class OutgoingConnection(Connection):
+    def send_msg(self, msg):
+        if not self.sock:
+            raise SocketCreationException
+        self.sock.sendall(COMMAND_TRANSFER)
+        self.sock.sendall(msg)
+
+    def send_file(self, filename):
+        if not self.sock:
+            raise SocketCreationException
+
+        f = open(filename, "rb")
+        self.sock.sendall(FILE_TRANSFER)
+        while True:
+            chunk = f.read(CHUNK_SIZE)
+            if not chunk:
+                break  # EOF
+            self.sock.sendall(chunk)
+        f.close()
+
+
+class IncomingConnection(Connection):
+    def recv_data(self):
+        transfer_type = self.sock.recv(1)
+        if transfer_type == COMMAND_TRANSFER:
+            print self.sock.recv(CHUNK_SIZE)
+        elif transfer_type == FILE_TRANSFER:
+            print "Incoming File Transfer"
 
 
 class InvalidCommandError(Exception):
@@ -14,7 +71,7 @@ class Command(object):
     """
     Represents a command that can be executed.
     """
-    def __init__(self, command_string, command_time):
+    def __init__(self, command_string, command_time, target):
         self. command_string = command_string
 
         toks = command_string.strip().split(" ")
@@ -31,8 +88,13 @@ class Command(object):
         self.time = command_time
         self.time_object = time.strptime(command_time, "%H:%M:%S")
 
+        self.target = target
+
     def __str__(self):
         return self.command_string
+
+    def execute(self):
+        self.target(*self.args)
 
     @staticmethod
     def sort(command1, command2):
