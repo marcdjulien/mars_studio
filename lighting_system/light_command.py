@@ -1,30 +1,32 @@
 from globals import *
 from common import *
+from threading import Thread
 PROMPT = "light-console>"
 
-# Todo: Read form configuration file
-HABITAT_CONNECTION = ("localhost", 9000)
 
-
-class LightConsole(object):
+class LightConsole(Thread):
     """
-
+    The main class used to read inputs from a user to control a remote
+    habitat.
     """
 
     def __init__(self):
+        super(LightConsole, self).__init__()
         self.done = False
-        logging.debug("LightControl: Initialized")
 
     def run(self):
         """
         Begins the execution of the main console.
         """
-        logging.debug("LightControl: Starting")
+        logger.debug("Starting")
         while not self.done:
+            # Read the input from the user
             input_str = raw_input(PROMPT)
+            # Strip trailing whitespace
             input_str = input_str.strip()
+            # Evaluate the command
             self.evaluate(input_str)
-        logging.debug("LightControl: Exiting")
+        logger.debug("Exiting")
 
     def send_command(self, msg):
         """
@@ -32,9 +34,14 @@ class LightConsole(object):
         :param msg: The command to send
         :return:
         """
-        c = OutgoingConnection(HABITAT_CONNECTION, open=True)
-        c.send_msg(msg)
-        c.close()
+        # The address of the lighting system on the remote habitat
+        out_address = (HABITAT_ADDRESS, HABITAT_LIGHTING_SYSTEM_PORT)
+        # Create and open the connection
+        conn = OutgoingConnection(out_address, open=True)
+        # Send the message
+        conn.send_msg(msg)
+        # Close the connection
+        conn.close()
 
     def send_file(self, filename):
         """
@@ -58,6 +65,7 @@ class LightConsole(object):
             self.unrecognized(input_str)
             return False
 
+        # Extract the action/command
         command = toks[0]
 
         if command in ["e", "exit"]:
@@ -90,16 +98,16 @@ class LightConsole(object):
         """
 
         if len(args) != 1:
-            print "Invalid number of arguments for 'light' command"
+            logger.warning("Invalid number of arguments for 'light' command")
             return False
 
         try:
             value = float(args[0])
             if not 0.0 <= value <= 1.0:
-                print "Argument must be between 0.0 and 1.0"
+                logger.warning("Argument must be between 0.0 and 1.0")
                 return False
         except ValueError:
-            print "Invalid argument type"
+            logger.warning("Invalid argument type")
             return False
         self.send_command("light %f" % value)
 
@@ -111,16 +119,16 @@ class LightConsole(object):
         """
 
         if len(args) != 1:
-            print "Invalid number of arguments for 'shade' command"
+            logger.warning("Invalid number of arguments for 'shade' command")
             return False
 
         try:
             value = float(args[0])
             if not 0.0 <= value <= 1.0:
-                print "Argument must be between 0.0 and 1.0"
+                logger.warning("Argument must be between 0.0 and 1.0")
                 return False
         except ValueError:
-            print "Invalid argument type"
+            logger.warning("Invalid argument type")
             return False
         self.send_command("shade %f" % value)
 
@@ -132,22 +140,22 @@ class LightConsole(object):
         """
 
         if len(args) != 1:
-            print "Invalid number of arguments for 'manual' command"
+            logger.warning("Invalid number of arguments for 'manual' command")
             return False
 
         if args[0] not in ["on", "off"]:
-            print "Argument must of 'on' or 'off'"
+            logger.warning("Argument must of 'on' or 'off'")
             return False
         else:
             return self.send_command("manual %s" % args[0])
 
     def unrecognized(self, command):
-        print "Unrecognized command: " + command
+        logger.warning("Unrecognized command: " + command)
 
 
 def main():
     lc = LightConsole()
-    lc.run()
+    lc.start()
 
 if __name__ == "__main__":
     main()

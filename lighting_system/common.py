@@ -11,6 +11,9 @@ class SocketCreationException(Exception):
 
 
 class Connection(object):
+    """
+
+    """
     def __init__(self, address, sock=None, open=False):
         self.address = address
         self.sock = sock
@@ -30,6 +33,9 @@ class Connection(object):
 
 
 class OutgoingConnection(Connection):
+    """
+
+    """
     def send_msg(self, msg):
         if not self.sock:
             raise SocketCreationException
@@ -51,12 +57,24 @@ class OutgoingConnection(Connection):
 
 
 class IncomingConnection(Connection):
+    """
+
+    """
     def recv_data(self):
+        """
+
+        :return: A list containing the data type, and information.
+                 If a command is transferred, the command will be in the data.
+                 If a file transfer is transferred, the socket will be in the data.
+        """
         transfer_type = self.sock.recv(1)
+        # Return the command
         if transfer_type == COMMAND_TRANSFER:
-            print self.sock.recv(CHUNK_SIZE)
+            command = self.sock.recv(CHUNK_SIZE)
+            return [transfer_type, command]
+        # Return the socket to the connection
         elif transfer_type == FILE_TRANSFER:
-            print "Incoming File Transfer"
+            return [transfer_type, self.sock]
 
 
 class InvalidCommandError(Exception):
@@ -66,6 +84,8 @@ class InvalidCommandError(Exception):
     def __init__(self, command):
         self.msg = "Invalid command: " + command
 
+class Sensors(object):
+    pass
 
 class Command(object):
     """
