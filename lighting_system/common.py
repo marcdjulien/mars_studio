@@ -1,6 +1,8 @@
 import datetime
 import time
 import socket
+import sys
+from globals import logger
 
 COMMAND_TRANSFER = "a"
 FILE_TRANSFER = "b"
@@ -123,3 +125,42 @@ class Command(object):
         a_seconds = datetime.timedelta(hours=a.tm_hour, minutes=a.tm_min, seconds=a.tm_sec).seconds
         b_seconds = datetime.timedelta(hours=b.tm_hour, minutes=b.tm_min, seconds=b.tm_sec).seconds
         return a_seconds - b_seconds
+
+
+class Config(object):
+    def __init__(self, config_filename):
+        self.config_filename = config_filename
+        self.config = {}
+        try:
+            self.read_config()
+        except Exception, e:
+            logger.warning("Unable to parse config file: "+e.message)
+            sys.exit()
+
+    def read_config(self):
+        # Store the cast functions for easy access later
+        converter = {"string": str,
+                     "int": int,
+                     "float": float}
+        # Open config file
+        with open(self.config_filename, "r") as f:
+            for line in f:
+                line = line.split("#")[0].strip().split()
+                if len(line) == 0:
+                    continue
+                if len(line) != 3:
+                    raise Exception("Invalid line in configs:"+line)
+                # Parse the line
+                data_type = line[0]
+                name = line[1]
+                # Convert to appropriate data type
+                value = converter[data_type](line[2])
+                # Store in the dictionary
+                self.config[name] = value
+        print self.config
+
+    def __getattr__(self, item):
+        if self.config.has_key(item):
+            return self.config[item]
+        else:
+            raise AttributeError

@@ -1,6 +1,7 @@
 from globals import *
 from common import *
 from threading import Thread
+import sys
 PROMPT = "light-console>"
 
 
@@ -10,9 +11,10 @@ class LightConsole(Thread):
     habitat.
     """
 
-    def __init__(self):
+    def __init__(self, config_filename=CONFIG_FILE):
         super(LightConsole, self).__init__()
         self.done = False
+        self.configs = Config(config_filename)
 
     def run(self):
         """
@@ -25,7 +27,11 @@ class LightConsole(Thread):
             # Strip trailing whitespace
             input_str = input_str.strip()
             # Evaluate the command
-            self.evaluate(input_str)
+            try:
+                self.evaluate(input_str)
+            except Exception, e:
+                logger.warning(str(e))
+
         logger.debug("Exiting")
 
     def send_command(self, msg):
@@ -35,7 +41,7 @@ class LightConsole(Thread):
         :return:
         """
         # The address of the lighting system on the remote habitat
-        out_address = (HABITAT_ADDRESS, HABITAT_LIGHTING_SYSTEM_PORT)
+        out_address = (self.configs.HABITAT_ADDRESS, self.configs.HABITAT_LIGHTING_SYSTEM_PORT)
         # Create and open the connection
         conn = OutgoingConnection(out_address, open=True)
         # Send the message
@@ -154,7 +160,11 @@ class LightConsole(Thread):
 
 
 def main():
-    lc = LightConsole()
+    if len(sys.argv) != 2:
+        print "Usage: light_command.py <config file>"
+        exit()
+    config_filename = sys.argv[1]
+    lc = LightConsole(config_filename)
     lc.start()
 
 if __name__ == "__main__":

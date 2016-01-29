@@ -29,13 +29,14 @@ class LightCommandInput(Thread):
         self.command_queue = Queue()
         # A dictionary mapping command names to their python functions
         self.command_targets = targets
+        self.configs = Config(CONFIG_FILE)
 
     def run(self):
         # Create the listening server
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             # Bind the listening server to the correct light port
-            self.server.bind(("", HABITAT_LIGHTING_SYSTEM_PORT))
+            self.server.bind(("", self.configs.HABITAT_LIGHTING_SYSTEM_PORT))
             self.server.listen(0)
         except:
             logger.error("Unable to create server.")
@@ -94,8 +95,9 @@ class LightSystem(Thread):
     SET_SHADE_STATE = "SET_SHADE"
     SET_LIGHT_STATE = "SET_LIGHT"
     EXIT_STATE = "EXIT"
+    LIGHT_PERIOD_CONTROL_CYCLE = 0.050
 
-    def __init__(self, control_period=LIGHT_PERIOD_CONTROL_CYCLE):
+    def __init__(self, config_filename=CONFIG_FILE, control_period=LIGHT_PERIOD_CONTROL_CYCLE):
         super(LightSystem, self).__init__()
 
         # The current state of the system
@@ -116,6 +118,8 @@ class LightSystem(Thread):
 
         # The command inputs
         self.command_input = LightCommandInput(self.command_targets)
+
+        self.configs = Config(config_filename)
 
     def run(self):
         """
@@ -167,7 +171,13 @@ class LightSystem(Thread):
 
 
 def main():
-    ls = LightSystem(control_period=1)
+    if len(sys.argv) != 3:
+        print "Usage: lighting_command.py <config file> <control period>"
+        exit()
+
+    config_filename = sys.argv[1]
+    control_period = float(sys.argv[2])
+    ls = LightSystem(control_period=control_period, config_filename=config_filename)
     ls.start()
 
 if __name__ == "__main__":

@@ -18,9 +18,4 @@ fh = logging.handlers.RotatingFileHandler(LOGGER_FILENAME, maxBytes=(1048576*5),
 fh.setFormatter(LOG_FORMAT)
 logger.addHandler(fh)
 
-# Todo: Read form configuration file
-HABITAT_LIGHTING_SYSTEM_PORT = 9000
-HABITAT_ADDRESS = "localhost"
-COMMANDER_ADDRESS = "localhost"
-# Todo: Read from configuration file
-LIGHT_PERIOD_CONTROL_CYCLE = 0.050
+CONFIG_FILE = "prototype.config"
