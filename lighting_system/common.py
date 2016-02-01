@@ -153,8 +153,11 @@ class Config(object):
                 # Parse the line
                 data_type = line[0]
                 name = line[1]
-                # Convert to appropriate data type
-                value = converter[data_type](line[2])
+                if data_type != "list":
+                    # Convert to appropriate data type
+                    value = converter[data_type](line[2])
+                else:
+                    value = line[2].split(",")
                 # Store in the dictionary
                 self.config[name] = value
         print self.config

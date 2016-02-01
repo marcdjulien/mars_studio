@@ -2,6 +2,7 @@ from globals import *
 from common import *
 from threading import *
 import time
+import pigpio
 from Queue import Queue
 
 
@@ -121,6 +122,17 @@ class LightSystem(Thread):
 
         self.configs = Config(config_filename)
 
+        self.setup_pins()
+
+    def setup_pins(self):
+        logger.debug("Setting up GPIO pins")
+        self.servo_pins = []
+        self.pi = pigpio.pi()
+        for pin_str in self.configs.SERVO_GPIO_PINS:
+            pin_int = int(pin_str)
+            self.servo_pins.append(pin_int)
+            self.pi.set_mode(pin_int, pigpio.OUTPUT)
+
     def run(self):
         """
         Runs the state machine.
@@ -131,7 +143,7 @@ class LightSystem(Thread):
 
         # The next time to execute a state
         self.next_time = time.time() + self.control_period
-        
+
         # Run forever!
         logger.debug("Starting")
         while True:
@@ -147,27 +159,29 @@ class LightSystem(Thread):
                 self.idle_state()
             elif self.current_state == LightSystem.MANUAL_STATE:
                 self.manual_state()
-            elif self.current_state == LightSystem.SET_LIGHT_STATE:
-                self.set_light_state()
-            elif self.current_state == LightSystem.SET_SHADE_STATE:
-                self.set_shade_state()
             elif self.current_state == LightSystem.EXIT_STATE:
+                self.pi.stop()
                 return
 
     def idle_state(self):
         pass
 
     def manual_state(self):
+        if not self.command_input.command_queue.empty():
+            command = self.command_input.command_queue.get()
+            command.execute()
+            logger.debug("Executing command:"+command.command_string)
+
+    def set_light(self, value):
         pass
 
-    def set_light_state(self):
-        pass
+    def set_shade(self, value):
+        pw = int(900*float(value) + 550)
+        logger.debug("Setting servo pulse width to %d"%(pw))
+        for pin in self.servo_pins:
+            self.pi.set_servo_pulsewidth(pin, pw)
 
-    def set_shade_state(self):
-        pass
 
-    def set_manual_mode(self):
-        pass
 
 
 def main():
