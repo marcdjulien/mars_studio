@@ -6,20 +6,6 @@ import pigpio
 from Queue import Queue
 
 
-class LightController(object):
-    """
-    Used to actuate the light and shade.
-    """
-    def __init__(self):
-        super(LightController, self).__init__()
-
-    def set_light(self, value):
-        pass
-
-    def set_shade(self, value):
-        pass
-
-
 class LightCommandInput(Thread):
     """
     Used to receive commands from a remote user.
@@ -107,10 +93,8 @@ class LightSystem(Thread):
         # The control period of the system
         self.control_period = control_period
 
-        # The controller to actuate the system
-        self.controller = LightController()
-        self.command_targets = {"light": self.controller.set_light,
-                                "shade": self.controller.set_shade,
+        self.command_targets = {"light": self.set_light,
+                                "shade": self.set_shade,
                                 "manual": self.set_manual_mode}
 
         # The sensor inputs
@@ -132,6 +116,8 @@ class LightSystem(Thread):
             pin_int = int(pin_str)
             self.servo_pins.append(pin_int)
             self.pi.set_mode(pin_int, pigpio.OUTPUT)
+            # Initialize to starting position
+            self.pi.set_servo_pulsewidth(pin_int, 550)
 
     def run(self):
         """
