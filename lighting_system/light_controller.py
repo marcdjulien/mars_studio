@@ -4,6 +4,7 @@ from threading import *
 import time
 import pigpio
 from Queue import Queue
+from TSL2561 import TSL2561
 
 
 class LightCommandInput(Thread):
@@ -88,7 +89,7 @@ class LightSystem(Thread):
         super(LightSystem, self).__init__()
 
         # The current state of the system
-        self.current_state = LightSystem.IDLE_STATE
+        self.current_state = LightSystem.MANUAL_STATE
 
         # The control period of the system
         self.control_period = control_period
@@ -99,7 +100,9 @@ class LightSystem(Thread):
 
         # The sensor inputs
         # Todo: Make this a global object
-        self.sensors = Sensors()
+        #self.sensors = Sensors()
+        self.tsl=TSL2561()
+        self.avg_lux = 0
 
         # The command inputs
         self.command_input = LightCommandInput(self.command_targets)
@@ -110,6 +113,7 @@ class LightSystem(Thread):
 
     def setup_pins(self):
         logger.debug("Setting up GPIO pins")
+        # Set pi ns to initial position
         self.servo_pins = []
         self.pi = pigpio.pi()
         for pin_str in self.configs.SERVO_GPIO_PINS:
@@ -118,6 +122,8 @@ class LightSystem(Thread):
             self.pi.set_mode(pin_int, pigpio.OUTPUT)
             # Initialize to starting position
             self.pi.set_servo_pulsewidth(pin_int, 550)
+        # Set LEDS to 0
+        self.pi.set_PWM_dutycycle(self.configs.LED_PIN, 0)
 
     def run(self):
         """
@@ -133,6 +139,8 @@ class LightSystem(Thread):
         # Run forever!
         logger.debug("Starting")
         while True:
+            old_state = self.current_state
+
             # Wait for the next control cycle
             if time.time() < self.next_time:
                 time.sleep(0.001)
@@ -149,8 +157,34 @@ class LightSystem(Thread):
                 self.pi.stop()
                 return
 
+            if old_state != self.current_state:
+                logger.debug("%s -> %s"%(old_state, self.current_state))
+
     def idle_state(self):
-        pass
+        if not self.command_input.command_queue.empty():
+            command = self.command_input.command_queue.get()
+            if "manual" in command.command_string:
+                command.execute()
+                logger.debug("Executing command:"+command.command_string)
+
+        lux = self.tsl.readLux(1)
+        self.avg_lux = self.avg_lux*0.9 + lux*0.1
+        """
+        if lux < self.configs.LOW_LIGHT_THRESH:
+            print "LOW INCOMINGLIGHT"
+            self.set_shade(0)
+        elif self.configs.LOW_LIGHT_THRESH <= lux <= self.configs.HIGH_LIGHT_THRESH:
+            print "MED INCOMING LIGHT"
+            self.set_shade(0.5)
+        elif self.configs.HIGH_LIGHT_THRESH < lux:
+            print "HIGH INCOMING LIGHT"
+            self.set_shade(1.0)
+        """
+        logger.debug("Lux %5.3f/%5.3f"%(lux, self.avg_lux))
+        lux_perc = self.avg_lux/30000.0
+
+        self.set_shade(lux_perc)
+        self.set_light(lux_perc)
 
     def manual_state(self):
         if not self.command_input.command_queue.empty():
@@ -159,13 +193,23 @@ class LightSystem(Thread):
             logger.debug("Executing command:"+command.command_string)
 
     def set_light(self, value):
-        pass
+        value = float(value)
+        pwm = max(0, min(255, int(255*value)))
+        logger.debug("Setting LED brightness to %d"%(pwm))
+        self.pi.set_PWM_dutycycle(self.configs.LED_PIN, pwm)
 
     def set_shade(self, value):
-        pw = int(900*float(value) + 550)
+        value = float(value)
+        pw = int(900*value + 550)
         logger.debug("Setting servo pulse width to %d"%(pw))
         for pin in self.servo_pins:
             self.pi.set_servo_pulsewidth(pin, pw)
+
+    def set_manual_mode(self, value):
+        if value == "on":
+            self.current_state = LightSystem.MANUAL_STATE
+        else:
+            self.current_state = LightSystem.IDLE_STATE
 
 
 
