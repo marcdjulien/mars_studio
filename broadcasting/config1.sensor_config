@@ -1,0 +1,5 @@
+# sensor_config files are formatted in the following way:
+# [Sensor] [UDP Port] [Photon ID] [Photon API URI]
+
+CO2-1 0 9000 http://api.photon.io/v1/devices/{DEVICE_ID}/sensor1
+CO2-2 1 9001 http://api.photon.io/v1/devices/{DEVICE_ID}/sensor1
