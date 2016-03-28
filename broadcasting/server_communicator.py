@@ -4,7 +4,7 @@ import threading
 from socket import *
 from util import logger
 from util import Config
-import httplib2
+import httplib
 
 POST_DATA_FORMAT = "photon_id={}&sensor_type={}&value={}&gathered_at={}"
 
@@ -39,7 +39,7 @@ class DataPoster(threading.Thread):
         super(DataPoster, self).__init__()
         self.sensor = sensor
         self.socket = self.get_socket(sensor)
-        self.http = httplib2.Http()
+        self.http = httplib.HTTPConnection(Config.get("WEBSERVER_IP"))
 
     def get_socket(self, sensor):
         s = socket(AF_INET, SOCK_DGRAM)
@@ -71,7 +71,7 @@ class DataPoster(threading.Thread):
                                             self.sensor.sensor_name,
                                             data,
                                             time.time())
-        resp = self.http.request(Config.get("WEBSERVER_POST_URL"), method="POST", body=post_data)
+        resp = self.http.request(method="POST", body=post_data)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

@@ -3,7 +3,7 @@ import time
 from socket import *
 from util import logger
 from util import Config
-import httplib2
+import httplib
 import random
 
 PERIOD = 1.0
