@@ -39,7 +39,7 @@ class DataPoster(threading.Thread):
         super(DataPoster, self).__init__()
         self.sensor = sensor
         self.socket = self.get_socket(sensor)
-        self.http = httplib.HTTPConnection(Config.get("WEBSERVER_IP"))
+        self.http = httplib.HTTPConnection(Config.get("WEBSERVER_POST_URL"))
 
     def get_socket(self, sensor):
         s = socket(AF_INET, SOCK_DGRAM)
