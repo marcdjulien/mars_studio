@@ -72,7 +72,7 @@ class DataPoster(threading.Thread):
                                             self.sensor.sensor_name,
                                             data,
                                             time.time())
-        resp = self.http.request("POST",Config.get("WEBSERVER_POST_URL"), post_data)
+        resp = self.http.request("POST", Config.get("WEBSERVER_POST_URI"), post_data)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
