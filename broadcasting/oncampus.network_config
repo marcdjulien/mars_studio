@@ -1,5 +1,5 @@
 # Network configurations
-BROADCAST_IP              255.255.255.255
+BROADCAST_IP              255.255.255.192
 BROADCAST_RECEIVING_IP    0.0.0.0
 WEBSERVER_IP              128.237.186.150
 WEBSERVER_POST_URL        http://128.237.186.150:8000/
