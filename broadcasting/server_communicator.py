@@ -39,7 +39,6 @@ class DataPoster(threading.Thread):
         super(DataPoster, self).__init__()
         self.sensor = sensor
         self.socket = self.get_socket(sensor)
-        self.http = httplib.HTTPConnection(Config.get("WEBSERVER_POST_URL"))
 
     def get_socket(self, sensor):
         s = socket(AF_INET, SOCK_DGRAM)
@@ -63,7 +62,7 @@ class DataPoster(threading.Thread):
 
             # Post the value to the webserver
             try:
-              self.post_data(data)
+                self.post_data(data)
             except:
                 logger.warning("Unable to POST data")
 
@@ -72,7 +71,8 @@ class DataPoster(threading.Thread):
                                             self.sensor.sensor_name,
                                             data,
                                             time.time())
-        resp = self.http.request("POST", Config.get("WEBSERVER_POST_URI"), post_data)
+        http = httplib.HTTPConnection(Config.get("WEBSERVER_POST_URL"))
+        resp = http.request("POST", Config.get("WEBSERVER_POST_URI"), post_data)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
