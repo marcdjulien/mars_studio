@@ -73,10 +73,7 @@ class DataPoster(threading.Thread):
                                             time.time())
         resp = self.http.request(Config.get("WEBSERVER_POST_URL"), method="POST", body=post_data)
 
-
-
 if __name__ == "__main__":
-
     if len(sys.argv) != 3:
         print "usage: ./server_communicator.py <sensor config file> <network config file>"
 

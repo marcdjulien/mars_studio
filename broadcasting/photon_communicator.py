@@ -17,6 +17,9 @@ class PhotonCommunicator(object):
     def __init__(self):
         self.socket = PhotonCommunicator.get_broadcast_socket()
 
+    """
+    Return a broadcast UDP Socket
+    """
     @staticmethod
     def get_broadcast_socket():
         s = socket(AF_INET, SOCK_DGRAM)
