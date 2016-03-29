@@ -1,4 +1,4 @@
-# Send UDP broadcast packets
+# Short example of how to send UDP broadcast packets
 
 import sys, time
 from socket import *
