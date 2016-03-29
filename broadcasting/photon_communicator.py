@@ -20,7 +20,10 @@ class PhotonCommunicator(object):
     """
 
     def __init__(self):
+        # Socket used to broadcast data
         self.bsocket = PhotonCommunicator.get_broadcast_socket()
+        
+        # Socket used to receive incoming packets from the Photon
         self.psocket = PhotonCommunicator.get_photon_socket()
 
     """
@@ -34,6 +37,9 @@ class PhotonCommunicator(object):
         s.bind(('', 0))
         return s
 
+    """
+    Returns a socket configured to receive data from the Photon
+    """
     @staticmethod
     def get_photon_socket():
         s = socket(AF_INET, SOCK_DGRAM)
@@ -65,7 +71,9 @@ class PhotonCommunicator(object):
             self.send_value(sensor, value)
 
     def get_and_send_udp(self):
+        #1. Get Sensor values from Photon
         data = self.get_values()
+        #2. Send values
         for i in xrange(len(Config.sensors)):
             self.send_value(Config.sensors[i], data[i])
 
@@ -100,6 +108,9 @@ class PhotonCommunicator(object):
             values.append(value[0])
         return values
 
+    """
+    Sends a value to the Configure port for this sensor via UDP broadcast.
+    """
     def send_value(self, sensor, value):
         self.bsocket.sendto(str(value), (Config.get("BROADCAST_IP"), sensor.udp_port))
 
