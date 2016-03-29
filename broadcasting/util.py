@@ -74,3 +74,6 @@ class Sensor(object):
         self.udp_port = int(udp_port)
         self.api_uri = api_uri
         self.photon_id = photon_id
+
+    def __str__(self):
+        return "({}, {}, {}, {})".format(self.sensor_name, self.photon_id, self.udp_port, self.api_uri)

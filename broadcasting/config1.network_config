@@ -2,4 +2,6 @@
 BROADCAST_IP              255.255.255.255
 BROADCAST_RECEIVING_IP    0.0.0.0
 WEBSERVER_IP              localhost
-WEBSERVER_POST_URL        http://localhost:8000/
+WEBSERVER_POST_URL        localhost:8000
+WEBSERVER_POST_URI        /
+PHOTON_UDP_IN_PORT        8000
