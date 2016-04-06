@@ -5,4 +5,6 @@ WEBSERVER_IP              localhost
 WEBSERVER_POST_URL        localhost:8000
 WEBSERVER_POST_URI        /
 PHOTON_UDP_IN_PORT        8000
+
+# System Configurations
 N_CAMERAS                 1
