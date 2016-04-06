@@ -23,6 +23,11 @@ _fh.setFormatter(LOG_FORMAT)
 logger.addHandler(_fh)
 
 class Config(object):
+    """
+    Static Configuration class that reads in the configuration of the network, system, and
+    sensors at runtime. Edit the .sensor_config files and .system_config files to alter
+    the configurations.
+    """
     sensors = []
     config = {}
 
@@ -69,6 +74,9 @@ class Config(object):
             raise AttributeError
 
 class Sensor(object):
+    """
+    Sensor class used to represent the sensors within the system.
+    """
     def __init__(self, sensor_name, photon_id, udp_port, api_uri):
         self.sensor_name = sensor_name
         self.udp_port = int(udp_port)
