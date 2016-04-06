@@ -1,10 +1,14 @@
+"""
+This code is in charge of taking pictures from the 4 cameras
+and posting them to the webserver.
+"""
 import sys
 from SimpleCV import Camera
 from util import Config, logger
 import time
 
 PERIOD = 5.0
-# noinspection PyBroadException
+
 class CameraCapture(object):
 
     def __init__(self):
@@ -17,6 +21,8 @@ class CameraCapture(object):
                 self.cameras.append(Camera(camera_index = i))
             except:
                 logger.warning("Error opening camera #"+str(i))
+        
+        self.n_cameras = len(self.cameras)
 
     def start(self):
         while True:
@@ -42,6 +48,7 @@ class CameraCapture(object):
         return images
 
     def post_images(self, images):
+        #Todo: Saving the images to disk until webserver is up and running
         for i in xrange(self.n_cameras):
             img = images[i]
             img.show()
@@ -55,6 +62,6 @@ if __name__ == "__main__":
     Config.init(sys.argv[1], sys.argv[2])
 
     # Start
-    logger.debug("Starting Server Communicator")
+    logger.debug("Starting Cameras Process")
     cc = CameraCapture()
     cc.start()
